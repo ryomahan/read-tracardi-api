@@ -1,10 +1,10 @@
-# Web page JS integrations
+# 通过给网页注入 JS 锚点进行信息整合
 
 ## Connecting and configuring the script 
 
-Tracardi comes with Javascript snippet that integrates any webpage with Tracardi. 
-In order to use it you must paste it in your web page header. 
-This is the example of the snippet:
+你可以通过给任何网页注入 Tracardi 给出的特定 JavaScript 代码片段让相应网页和 Tracardi 建立关联。
+
+如果需要使用这种方式，你需要将下面的代码注入到页面的 header 标签中。 
 
 ```html
     <script>
@@ -21,11 +21,10 @@ This is the example of the snippet:
         }
 
         !function(e){"object"==typeof exports&&"undefine...
-
     </script>
 ```
 
-If you refresh your page with the above javascript code you will notice that the response from tracardi will be like this:
+如果你不加修改直接将上面的代码粘贴到你的页面上 Tracardi 会返回类似下面这样的响应：
 
 ```
 Headers:
@@ -35,8 +34,7 @@ Body:
 {"detail": "Access denied. Invalid source."}
 ```
 
-This is because of the invalid source id that was not defined in the option.source.id section of the snippet. To obtain source id create 
-resource in Tracardi and then replace string ‘<your-resource-id-HERE>‘ with the resource id from Tracardi, like this:
+这是因为给出的示例代码 option.source.id 部分并没有定义有效的  source id。你可以通过在 Tracardi 控制台创建资源并用给出的资源 id 替换示例代码中的 `<your-resource-id-HERE>`，例如：
 
 ```html
     <script>
@@ -53,18 +51,16 @@ resource in Tracardi and then replace string ‘<your-resource-id-HERE>‘ with 
         }
 
         !function(e){"object"==typeof exports&&"undefined"!=ty...
-
     </script>
 ```
 
-Please notice that there is also the URL of Tracardi backend server. Please replace the IP 192.168.1.103 with the address 
-of your Tracardi server.
+同样需要注意：你需要在实际使用过程中将 `192.168.1.103:8686` 替换成你实际运行的 Tracardi API 服务的地址和端口。
 
 ## Sending events
 
-Now we are ready to send events to Tracardi. 
+在做好上面这些准备后就可以尝试发送事件数据给 Tracardi 了。
 
-In a separate script define events that you would like to send.
+你可以将你想要发送的事件数据内容写在一个单独的 JavaScript 脚本中，例如：
 
 ```javascript
 window.response.context.profile = true;
@@ -73,23 +69,26 @@ window.tracker.track("interest", {"Eletronics": ["Mobile phones", "Accessories"]
 window.tracker.track("page-view",{});
 ```
 
-Events consist of an event type. Event type is any string that describes what happened. 
-In our example we have 3 events: "purchase-order", "interest", "page-view".
+事件数据至少由一个事件类型组成，事件类型可以是描述用户具体行为的任意字符串。
 
-### Events data, properties
+在示例中我们定义了三个事件类型："purchase-order", "interest", "page-view"。
 
-Each event may have additional data that describes the details of the event.
-For example, we have the event "interest" and it sends data `{"Eletronics": ["Mobile phones", "Accessories"]}`
+### 事件数据和属性
 
-Tracardi collects all events and sends it as one request to the Tracradi tracker endpoint.
+每个事件都可以有额外的数据用来描述事件的细节。
 
-All events are send when page fully loads. 
+例如我们定义了一个 interest 事件并且给他附加了额外的数据：`{"Eletronics": ["Mobile phones", "Accessories"]}`
 
-## Binding events to page elements
+你之前埋下的 JavaScript 代码片段会收集所有事件数据并且通过请求将事件数据发送给 Tracardi tracker endpoint。
 
-You can also bind events to page elements. To do that you will need to be sure that the page loads and every element of the page is accessible.
+TODO：这是什么原理
+所有事件数据会在网站页面加载完成后发送。
 
-To do that add the following configuration to options. 
+## 将事件触发锚点绑定到页面元素上
+
+你也可以将事件触发锚点绑定在页面的元素上。在此之前，你需要确定页面已经加载完成并且页面上的元素是可访问的。
+
+你可以给示例代码片段中的 options 添加如下内容：
 
 ```javascript
 listeners: {
@@ -98,11 +97,11 @@ listeners: {
     }
 }
 ```
-The whole configuration should look like this.
+
+完整的配置信息如下所示：
 
 ```html
 <script>
-
         const options = {
             listeners: {
                 onContextReady: ({helpers, context}) => {
@@ -119,15 +118,11 @@ The whole configuration should look like this.
             }
         }
 
-        !function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeo...
-    
+        !function(e){"object"==typeof exports&&"undefined"!=ty...
 </script>
 ```
 
-Then you can write a code that binds for example onClick event on a button to 
-tracardi event.
-
-This is the example code:
+然后你可以写一段 JavaScript 代码将 Tracardi 事件与页面上指定按钮的 onClick 事件进行绑定，如下所示：
 
 ```javascript
 onContextReady: ({helpers, context}) => {
@@ -144,43 +139,41 @@ onContextReady: ({helpers, context}) => {
     });
 }
 ```
-It looks for the element with id="button"
+
+示例中下面这段代码的作用是从网页中查找 `id=button` 的元素。
 
 ```javascript
 const btn0 = document.querySelector('#button')
 ```
 
-Then using helpers binds onClick on that element to function:
+示例中下面这段代码的作用是利用 helpers 将指定页面元素的 onClink 事件绑定指定方法。
 
 ```javascript
-async ()=> {
-        // Send event to tracardi
-        const response = await helpers.track("page-view", {"page": "hello"});
+helpers.onClick(btn0, async ()=> {
+    const response = await helpers.track("page-view", {"page": "hello"});
 
-        if(response) {
-            const responseToCustomEvent = document.getElementById('response-to-custom-event');
-            responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
-            responseToCustomEvent.style.display = "block"
-        }
+    if(response) {
+        const responseToCustomEvent = document.getElementById('response-to-custom-event');
+        responseToCustomEvent.innerText = JSON.stringify(response.data, null, " ");
+        responseToCustomEvent.style.display = "block"
     }
-``` 
+});
+```
 
-Inside the function we send the event to Tracardi:
+示例中下面这段代码的作用是利用 helpers 将事件发送给 Tracardi。
 
 ```javascript
 const response = await helpers.track("page-view", {"page": "hello"});
 ```
 
-And on response we make a string from JSON response and bind it as innerText of 
-element with id='response-to-custom-event'
+在获取到 Tracardi 响应候会从 JSON response 产生一个字符串并将其作为 `id=response-to-custom-event` 网页元素的 innerText。
 
-## Wrap up
+## 总结
 
-The whole configuration looks like this:
+到目前为止完整的示例代码如下所示：
  
 ```html
  <script>
- 
          const options = {
              listeners: {
                  onContextReady: ({helpers, context}) => {
@@ -207,15 +200,13 @@ The whole configuration looks like this:
              }
          }
  
-         !function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeo...
-     
+         !function(e){"object"==typeof exports&&"undefined"!=ty...
  </script>
  ```
 
 ## Tracardi helpers
 
-You probably noticed that we use helpers to bind events. We used onClick method to bind
-to click event. You might need to bind to other than click event. To do that use addEventListener:
+你可能注意到了，我们使用 helpers 完成了网页事件和 Tracardi 事件的绑定。在示例中我们使用 onClick 方法捕获到了网页元素的点击事件，你也许需要捕获更多的网页事件，可以使用 helpers 提供的 addEventListener 方法：
 
 ```javascript
 const btn0 = document.querySelector('#button')                 
@@ -224,4 +215,4 @@ helpers.addListener(btn0, 'mouseover', async ()=> {
 });
 ```
 
-Helpers also have track method that let you send custom event to Tracardi at any time. 
+Helpers 也内置了一个 track 方法，方便你再任何时刻向 Tracardi 发送自定义的事件。

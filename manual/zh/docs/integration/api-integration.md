@@ -1,7 +1,6 @@
-# API integration
+# 通过 API 进行数据整合
 
-Event can be sent via Tracardi API. The APi is located at /track endpoint and takes data with POST method in the
-following format.
+可以通过 Tracardi API 发送事件信息。相关的 API 被部署在 /track 路由下，通过 HTTP POST 接受数据，数据格式如下所示：
 
 ```json
 {

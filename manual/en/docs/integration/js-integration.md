@@ -81,7 +81,7 @@ In our example we have 3 events: "purchase-order", "interest", "page-view".
 Each event may have additional data that describes the details of the event.
 For example, we have the event "interest" and it sends data `{"Eletronics": ["Mobile phones", "Accessories"]}`
 
-Tracardi collects all events and sends it as one request to the Tracradi tracker endpoint.
+Tracardi collects all events and sends it as one request to the Tracardi tracker endpoint.
 
 All events are send when page fully loads. 
 
